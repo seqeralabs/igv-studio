@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:igv.org)",
+      "WebFetch(domain:docs.seqera.io)",
+      "Bash(docker build:*)",
+      "mcp__plugin_beads_beads__list"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "../connect"
+    ]
+  }
+}
+
