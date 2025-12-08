@@ -17,7 +17,7 @@ if [ -d "/workspace/data" ]; then
     echo "IGV configuration updated with discovered data"
 else
     echo "No data directory found, using default configuration"
-    cp /opt/igv-webapp/js/igvwebConfig.template.js /opt/igv-webapp/js/igvwebConfig.js
+    cp /opt/igv-webapp/igvwebConfig.template.js /opt/igv-webapp/igvwebConfig.js
 fi
 
 # Create nginx configuration with port

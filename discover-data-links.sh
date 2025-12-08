@@ -229,7 +229,7 @@ for datalink_dir in "$DATA_DIR"/*; do
              "height": (if $type == "alignment" then 300 elif $type == "wig" then 150 else 100 end)
            }]' "$OUTPUT_FILE" > /tmp/temp.json && mv /tmp/temp.json "$OUTPUT_FILE"
         
-    done < <(find "$datalink_dir" -type f \( $(printf -- "-name '*.%s' -o " $TRACK_EXTENSIONS $GENOME_EXTENSIONS | sed 's/-o $//' ) \) -print0)
+    done < <(find "$datalink_dir" -type f \( $(printf -- '-name *.%s -o ' $TRACK_EXTENSIONS $GENOME_EXTENSIONS | sed 's/-o $//' ) \) -print0)
 done
 
 # Get counts for summary
