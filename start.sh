@@ -24,8 +24,7 @@ else
 fi
 
 # Create nginx configuration with dynamic port
-sed "s/CONNECT_TOOL_PORT_PLACEHOLDER/${CONNECT_TOOL_PORT}/g" /etc/nginx/sites-available/igv-app > /tmp/nginx.conf
-sudo cp /tmp/nginx.conf /etc/nginx/sites-available/igv-app
+sed -i "s/CONNECT_TOOL_PORT_PLACEHOLDER/${CONNECT_TOOL_PORT}/g" /etc/nginx/sites-available/igv-app
 
 # Test nginx configuration
 nginx -t

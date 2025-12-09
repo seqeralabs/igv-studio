@@ -5,20 +5,25 @@ Launch an IGV Studio instance on Seqera Platform.
 ## Prerequisites
 
 1. Get the Tower access token from 1Password:
+
 ```bash
 export TOWER_ACCESS_TOKEN=$(op read "op://Employee/Seqera Platform Prod/password")
 ```
 
-2. Ensure GitHub CLI has `write:packages` scope for pushing to ghcr.io:
-```bash
-gh auth refresh -h github.com -s write:packages
-```
-
 ## Build and Push Image
 
-Build for linux/amd64 (required for AWS/cloud compute):
+**Recommended: Use Wave** (see `/build-wave` skill):
+
 ```bash
-docker buildx build --platform linux/amd64 -t ghcr.io/edmundmiller/igv-studio:latest --push .
+wave -f Dockerfile --context . --build-repo cr.seqera.io/seqera-services/igv-studio \
+  --platform linux/amd64 --freeze --await --tower-token "$TOWER_ACCESS_TOKEN"
+```
+
+Alternative with Docker buildx (requires local Docker + ghcr.io auth):
+
+```bash
+gh auth refresh -h github.com -s write:packages
+docker buildx build --platform linux/amd64 -t cr.seqera.io/seqera-services/igv-studio:latest --push .
 ```
 
 ## Launch Studio
@@ -27,7 +32,7 @@ docker buildx build --platform linux/amd64 -t ghcr.io/edmundmiller/igv-studio:la
 tw studios add \
   --name "IGV Studio" \
   --workspace "scidev/testing" \
-  --custom-template "ghcr.io/edmundmiller/igv-studio:latest" \
+  --custom-template "cr.seqera.io/seqera-services/igv-studio:latest" \
   --compute-env "seqera_aws_london_fusion_nvme" \
   --auto-start
 ```
@@ -35,11 +40,12 @@ tw studios add \
 ## Optional: Mount Data Links
 
 To mount data links for genomic data access:
+
 ```bash
 tw studios add \
   --name "IGV Studio - My Project" \
   --workspace "scidev/testing" \
-  --custom-template "ghcr.io/edmundmiller/igv-studio:latest" \
+  --custom-template "cr.seqera.io/seqera-services/igv-studio:latest" \
   --compute-env "seqera_aws_london_fusion_nvme" \
   --mount-data "my-data-link-name" \
   --auto-start
@@ -61,16 +67,21 @@ tw studios view --name "IGV Studio" -w scidev/testing
 ## Troubleshooting
 
 ### `CannotPullContainerError: no matching manifest for linux/amd64`
+
 The image was built for the wrong architecture. Rebuild with:
+
 ```bash
-docker buildx build --platform linux/amd64 -t ghcr.io/edmundmiller/igv-studio:latest --push .
+docker buildx build --platform linux/amd64 -t cr.seqera.io/seqera-services/igv-studio:latest --push .
 ```
 
 ### `could not open loop device: open /dev/loop0: permission denied`
+
 The connect-client needs root privileges to set up loop devices for Fusion. Ensure the Dockerfile does NOT have a `USER` directive - the container must run as root.
 
 ### `permission_denied` when pushing to ghcr.io
+
 Your GitHub token needs `write:packages` scope:
+
 ```bash
 gh auth refresh -h github.com -s write:packages
 ```

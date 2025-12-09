@@ -1,0 +1,22 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Claude Code
+.claude
+
+# Documentation
+*.md
+LICENSE
+
+# Test data (large files)
+test-data
+
+# Build artifacts
+*.log
