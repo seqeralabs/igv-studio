@@ -6,8 +6,8 @@
 set -e
 
 DISCOVERED_DATA="${1:-/tmp/discovered-tracks.json}"
-TEMPLATE_CONFIG="${2:-/opt/igv-webapp/igvwebConfig.template.js}"
-OUTPUT_CONFIG="${3:-/opt/igv-webapp/igvwebConfig.js}"
+TEMPLATE_CONFIG="${2:-/opt/igv-webapp/js/igvwebConfig.template.js}"
+OUTPUT_CONFIG="${3:-/opt/igv-webapp/js/igvwebConfig.js}"
 
 echo "Generating IGV configuration..."
 echo "  Input: $DISCOVERED_DATA"
