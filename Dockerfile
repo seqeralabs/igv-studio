@@ -3,16 +3,26 @@
 # Add a default Connect client version. Can be overridden by build arg
 ARG CONNECT_CLIENT_VERSION="0.9.0"
 
-# Seqera base image
+# Stage 1: Build IGV webapp using Node.js
+FROM node:18-slim AS igv-builder
+WORKDIR /build
+RUN apt-get update && apt-get install -y curl unzip git \
+    && curl -L -o igv-webapp.zip https://github.com/igvteam/igv-webapp/archive/refs/heads/master.zip \
+    && unzip igv-webapp.zip \
+    && cd igv-webapp-master \
+    && npm install \
+    && npm run build
+
+# Stage 2: Connect client
 FROM public.cr.seqera.io/platform/connect-client:${CONNECT_CLIENT_VERSION} AS connect
 
+# Stage 3: Final runtime image
 FROM ubuntu:20.04
 
-# Install nginx, curl, and jq for downloading IGV webapp and processing JSON  
+# Install nginx, curl, and jq for runtime
 RUN apt-get update --yes && apt-get install --yes --no-install-recommends \
     nginx \
     curl \
-    unzip \
     jq \
     python3 \
     sudo \
@@ -23,14 +33,10 @@ COPY --from=connect /usr/bin/connect-client /usr/bin/connect-client
 RUN /usr/bin/connect-client --install
 
 # Create directories for IGV webapp
-RUN mkdir -p /opt/igv-webapp /etc/nginx/sites-enabled
+RUN mkdir -p /opt/igv-webapp /opt/igv-webapp/js /etc/nginx/sites-enabled
 
-# Download IGV webapp from GitHub releases
-WORKDIR /tmp
-RUN curl -L -o igv-webapp.zip https://github.com/igvteam/igv-webapp/archive/refs/heads/master.zip \
-    && unzip igv-webapp.zip \
-    && cp -r igv-webapp-master/* /opt/igv-webapp/ \
-    && rm -rf igv-webapp.zip igv-webapp-master
+# Copy built IGV webapp from builder stage
+COPY --from=igv-builder /build/igv-webapp-master/dist/ /opt/igv-webapp/
 
 # Copy nginx configuration template
 COPY nginx.conf /etc/nginx/sites-available/igv-app

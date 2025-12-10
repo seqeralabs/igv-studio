@@ -12,9 +12,24 @@ if [ -z "$CONNECT_TOOL_PORT" ]; then
     exit 1
 fi
 
-# Run Fusion data link discovery and IGV configuration generation
-echo "Discovering Fusion-mounted data links..."
-if [ -d "/workspace/data" ]; then
+# Wait for Fusion data directory to be populated (with timeout)
+echo "Waiting for Fusion data mounts..."
+WAIT_TIMEOUT=60
+WAITED=0
+while [ ! -d "/workspace/data" ] || [ -z "$(ls -A /workspace/data 2>/dev/null)" ]; do
+    if [ $WAITED -ge $WAIT_TIMEOUT ]; then
+        echo "No data links mounted after ${WAIT_TIMEOUT}s, using default config"
+        break
+    fi
+    sleep 2
+    WAITED=$((WAITED + 2))
+    echo "Waiting for data... (${WAITED}s)"
+done
+
+# Run discovery only if data directory has content
+if [ -d "/workspace/data" ] && [ -n "$(ls -A /workspace/data 2>/dev/null)" ]; then
+    echo "Found data in /workspace/data, running discovery..."
+    ls -la /workspace/data/
     /usr/local/bin/discover-data-links.sh
     /usr/local/bin/generate-igv-config.sh
     echo "IGV configuration updated with discovered data"
