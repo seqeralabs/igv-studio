@@ -107,6 +107,22 @@ tw studios list -w scidev/testing
 tw studios view --name "IGV Studio" -w scidev/testing
 ```
 
+## Stop Running Studios
+
+Stop a studio by session ID:
+
+```bash
+tw studios stop --session-id <SESSION_ID> -w scidev/testing
+```
+
+Example:
+
+```bash
+tw studios stop --session-id d3ecc68b -w scidev/testing
+```
+
+**Tip**: Always stop old studio sessions when iterating on builds to free compute resources and avoid confusion.
+
 ## Troubleshooting
 
 ### Wave `OutOfMemoryError: Array allocation too large`
@@ -155,3 +171,23 @@ gh auth refresh -h github.com -s write:packages
 - **Connect client**: v0.9.0+ (set via `CONNECT_CLIENT_VERSION` build arg)
 - **Architecture**: linux/amd64 for cloud compute environments
 - **User**: Must run as root (no `USER` directive) for Fusion loop device setup
+
+## Iterative Development Workflow
+
+When debugging or iterating on the container:
+
+1. **Build** with Wave (use `/tmp/igv-build` for minimal context)
+2. **Launch** new studio with updated image
+3. **Test** in browser - check console for errors
+4. **Stop** old studio before launching the next iteration
+5. **Repeat** until working
+
+```bash
+# Example iteration cycle
+IMAGE_URL=$(wave -f /tmp/igv-build/Dockerfile --context /tmp/igv-build --platform linux/amd64 --await --tower-token "$TOWER_ACCESS_TOKEN")
+tw studios add --name "IGV Studio" -w scidev/testing --custom-template "$IMAGE_URL" --compute-env "seqera_aws_london_fusion_nvme" --mount-data "igv-test-data" --auto-start
+
+# After testing, stop before next iteration
+tw studios list -w scidev/testing  # Note session ID
+tw studios stop --session-id <OLD_SESSION_ID> -w scidev/testing
+```
