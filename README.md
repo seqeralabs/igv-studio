@@ -6,7 +6,7 @@ A containerized [IGV (Integrative Genomics Viewer)](https://igv.org/) web applic
 
 - **Full IGV Web App**: Complete genomics visualization capabilities
 - **CORS Support**: Properly configured to access external genomic data sources
-- **Range Requests**: Supports indexed files (BAM, VCF, etc.) for efficient data loading  
+- **Range Requests**: Supports indexed files (BAM, VCF, etc.) for efficient data loading
 - **Seqera Integration**: Built on Seqera's Studio framework with dynamic port handling
 - **Local Testing**: Includes docker-compose setup for development
 
@@ -15,6 +15,7 @@ A containerized [IGV (Integrative Genomics Viewer)](https://igv.org/) web applic
 ### Deploy to Seqera Platform
 
 1. Build and push the Docker image:
+
 ```bash
 docker build -t your-registry/igv-studio:latest .
 docker push your-registry/igv-studio:latest
@@ -31,9 +32,11 @@ docker push your-registry/igv-studio:latest
 
 1. Clone this repository
 2. Start the local environment:
+
 ```bash
 docker-compose up --build
 ```
+
 3. Open http://localhost:8080 in your browser
 
 ## Supported Data Formats
@@ -41,25 +44,30 @@ docker-compose up --build
 IGV webapp supports a wide range of genomic file formats:
 
 ### Sequence Data
+
 - FASTA (.fa, .fasta)
 - 2bit (.2bit)
 
-### Alignment Data  
+### Alignment Data
+
 - BAM (.bam) + index (.bai)
 - SAM (.sam)
 - CRAM (.cram) + index (.crai)
 
 ### Variant Data
+
 - VCF (.vcf, .vcf.gz) + index (.tbi)
 - BCF (.bcf)
 
 ### Annotation Data
+
 - BED (.bed)
-- GFF (.gff, .gff3) 
+- GFF (.gff, .gff3)
 - GTF (.gtf)
 - BigBed (.bb)
 
 ### Coverage Data
+
 - BigWig (.bw, .bigwig)
 - Wiggle (.wig)
 - TDF (.tdf)
@@ -67,17 +75,21 @@ IGV webapp supports a wide range of genomic file formats:
 ## Data Loading Options
 
 ### 1. Local Files
+
 - Use "Local File" button in IGV to upload files from your computer
 - Supports drag-and-drop functionality
 - Files are processed entirely in the browser (no server upload)
 
 ### 2. URL-based Loading
+
 - Load data directly from web URLs
 - Requires CORS-enabled servers for cross-origin access
 - Supports cloud storage (AWS S3, Google Cloud Storage, etc.)
 
 ### 3. Sample Data
+
 IGV includes built-in sample datasets for testing:
+
 - Human genome (hg38, hg19)
 - Mouse genome (mm10)
 - Various annotation tracks
@@ -87,6 +99,7 @@ IGV includes built-in sample datasets for testing:
 For loading data from external servers, ensure CORS headers are properly configured:
 
 ### Required Headers
+
 ```
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Methods: GET, HEAD, OPTIONS
@@ -95,6 +108,7 @@ Access-Control-Expose-Headers: Content-Length, Content-Range, Content-Type
 ```
 
 ### Example nginx Configuration
+
 ```nginx
 location ~* \.(bam|bai|vcf|bed|gff|bigwig|bw)$ {
     add_header 'Access-Control-Allow-Origin' '*';
@@ -107,19 +121,22 @@ location ~* \.(bam|bai|vcf|bed|gff|bigwig|bw)$ {
 ### Cloud Storage Examples
 
 #### AWS S3
+
 Configure bucket CORS policy:
+
 ```json
 [
-    {
-        "AllowedHeaders": ["*"],
-        "AllowedMethods": ["GET", "HEAD"],
-        "AllowedOrigins": ["*"],
-        "ExposeHeaders": ["Content-Length", "Content-Range"]
-    }
+  {
+    "AllowedHeaders": ["*"],
+    "AllowedMethods": ["GET", "HEAD"],
+    "AllowedOrigins": ["*"],
+    "ExposeHeaders": ["Content-Length", "Content-Range"]
+  }
 ]
 ```
 
 #### Google Cloud Storage
+
 ```bash
 gsutil cors set cors-config.json gs://your-bucket-name
 ```
@@ -138,6 +155,7 @@ IGV Studio automatically discovers genomic data files from Seqera Platform Fusio
 ### Supported Auto-Discovery
 
 **File Types Automatically Detected:**
+
 - **Alignments**: BAM, SAM, CRAM (+ .bai, .csi indices)
 - **Variants**: VCF, VCF.GZ, BCF (+ .tbi, .csi indices)
 - **Annotations**: BED, GFF, GTF, BigBed (+ .tbi indices)
@@ -148,6 +166,7 @@ IGV Studio automatically discovers genomic data files from Seqera Platform Fusio
 
 **Index File Detection:**
 The system automatically pairs data files with their indices:
+
 - `sample.bam` → `sample.bam.bai`
 - `variants.vcf.gz` → `variants.vcf.gz.tbi`
 - `genome.fa` → `genome.fa.fai`
@@ -204,15 +223,18 @@ Place this in your bucket as `igv-config.json`:
 ### Data Organization in IGV
 
 **Track Naming:**
+
 - Auto-discovered tracks: `DataLinkName - FileName`
 - User-defined tracks: Use provided names
 
 **Track Grouping:**
+
 - Tracks are organized by data link source
 - Each bucket appears as a separate track group
 - User configs can override default organization
 
 **Example Studio View:**
+
 ```
 IGV Browser
 ├── biopharmaX-project-a/
@@ -228,20 +250,37 @@ IGV Browser
 
 ## Architecture
 
+### Docker Build
+
+Uses a multi-stage build for a lean final image:
+
+| Stage | Base Image       | Purpose                                           |
+| ----- | ---------------- | ------------------------------------------------- |
+| 1     | `node:18-slim`   | Build IGV webapp (`npm install && npm run build`) |
+| 2     | `connect-client` | Seqera Platform integration                       |
+| 3     | `ubuntu:20.04`   | Runtime with nginx only                           |
+
+The final image contains no Node.js runtime—only the compiled static files.
+
 ### Container Structure
+
 ```
-/opt/igv-webapp/          # IGV webapp static files
+/opt/igv-webapp/          # IGV webapp static files (built from source)
 /etc/nginx/               # nginx configuration
-/usr/local/bin/start.sh   # Startup script with dynamic port handling
+/usr/local/bin/start.sh   # Startup script with Fusion wait logic
 ```
 
 ### Startup Process
-1. `connect-client` initializes Seqera integration
-2. `start.sh` configures nginx with dynamic port (`CONNECT_TOOL_PORT`)
-3. nginx serves IGV webapp on the assigned port
-4. Studio URL routes to the IGV interface
+
+1. `connect-client` initializes Seqera integration and mounts data links
+2. `start.sh` waits for Fusion to populate `/workspace/data/` (up to 2 min timeout)
+3. Discovery scripts scan for genomic files and generate IGV config
+4. nginx starts serving IGV webapp on `CONNECT_TOOL_PORT`
+
+> **Note:** Fusion creates mount directories immediately but populates files asynchronously. The startup script waits for actual files before running discovery.
 
 ### Security Features
+
 - CORS headers for cross-origin data access
 - Content security headers (X-Frame-Options, etc.)
 - No server-side data storage (client-side only processing)
@@ -249,6 +288,7 @@ IGV Browser
 ## Customization
 
 ### Custom IGV Configuration
+
 To customize the IGV webapp configuration, modify the Dockerfile to include your config files:
 
 ```dockerfile
@@ -257,6 +297,7 @@ COPY igvConfig.js /opt/igv-webapp/js/igvConfig.js
 ```
 
 ### Additional Genomic Tools
+
 Extend the container to include additional bioinformatics tools:
 
 ```dockerfile
@@ -265,17 +306,18 @@ RUN apt-get update && apt-get install -y samtools bcftools tabix
 ```
 
 ### Custom Data Sources
+
 Pre-configure data sources by modifying the IGV webapp configuration:
 
 ```javascript
 // Custom genome and track definitions
 var customGenomes = {
-    "mygenome": {
-        "id": "mygenome",
-        "name": "My Custom Genome",
-        "fastaURL": "https://myserver.com/genome.fa",
-        "indexURL": "https://myserver.com/genome.fa.fai"
-    }
+  mygenome: {
+    id: "mygenome",
+    name: "My Custom Genome",
+    fastaURL: "https://myserver.com/genome.fa",
+    indexURL: "https://myserver.com/genome.fa.fai",
+  },
 };
 ```
 
@@ -284,22 +326,27 @@ var customGenomes = {
 ### Common Issues
 
 #### IGV Not Loading
+
 - Check browser console for JavaScript errors
 - Verify nginx is running: `docker-compose logs`
 - Confirm port mapping in docker-compose.yml
 
 #### Data Loading Fails
+
 - Verify CORS headers on your data server
 - Check file permissions and accessibility
 - Ensure index files are available for large datasets
 
 #### Studio Connection Issues
+
 - Confirm `CONNECT_TOOL_PORT` environment variable is set
 - Check Seqera Platform network connectivity
 - Verify image registry access
 
 ### Debug Mode
+
 Enable debug logging by modifying `start.sh`:
+
 ```bash
 # Add debug output
 set -x
@@ -316,6 +363,7 @@ nginx -T  # Test and dump configuration
 ## License
 
 This project builds on several open-source components:
+
 - [IGV.js](https://github.com/igvteam/igv.js) - MIT License
 - [IGV-webapp](https://github.com/igvteam/igv-webapp) - MIT License
 - nginx - BSD-2-Clause License
@@ -323,6 +371,7 @@ This project builds on several open-source components:
 ## Support
 
 For issues related to:
+
 - **IGV functionality**: [IGV Support Forum](https://groups.google.com/forum/#!forum/igv-help)
 - **Seqera Platform**: [Seqera Documentation](https://docs.seqera.io/)
 - **This container**: Open an issue in this repository
