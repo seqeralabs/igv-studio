@@ -14,19 +14,14 @@ A containerized [IGV (Integrative Genomics Viewer)](https://igv.org/) web applic
 
 ### Deploy to Seqera Platform
 
-1. Build and push the Docker image:
+This repository uses **Seqera Platform's studio git integration** with Wave for automatic Docker image building.
 
-```bash
-docker build -t your-registry/igv-studio:latest .
-docker push your-registry/igv-studio:latest
-```
+1. In Seqera Platform, create a new Studio
+2. Select **Git Repository** as the source
+3. Point to this repository URL
+4. Platform will automatically build the image via Wave using `.seqera/studio-config.yaml`
 
-2. In Seqera Platform, create a new Studio with:
-   - **Image**: `your-registry/igv-studio:latest`
-   - **Tool**: Web Application
-   - **Description**: IGV Genomics Viewer
-
-3. Launch the Studio and access IGV webapp through the provided URL
+No manual Docker build or push required!
 
 ### Local Development
 
@@ -38,6 +33,21 @@ docker-compose up --build
 ```
 
 3. Open http://localhost:8080 in your browser
+
+## Repository Structure
+
+```
+.seqera/                    # Seqera Platform configuration
+├── studio-config.yaml      # Studio git integration config
+├── Dockerfile              # Multi-stage Docker build
+├── nginx.conf              # CORS-enabled nginx config
+├── start.sh                # Container startup script
+├── discover-data-links.sh  # Fusion data discovery
+├── generate-igv-config.sh  # IGV config generator
+└── igvwebConfig.template.js
+test-data/                  # Sample data for local testing
+docker-compose.yml          # Local development setup
+```
 
 ## Supported Data Formats
 
@@ -341,11 +351,10 @@ var customGenomes = {
 
 - Confirm `CONNECT_TOOL_PORT` environment variable is set
 - Check Seqera Platform network connectivity
-- Verify image registry access
 
 ### Debug Mode
 
-Enable debug logging by modifying `start.sh`:
+Enable debug logging by modifying `.seqera/start.sh`:
 
 ```bash
 # Add debug output

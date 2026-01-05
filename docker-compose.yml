@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   igv-studio:
-    build: .
+    build:
+      context: .seqera
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
