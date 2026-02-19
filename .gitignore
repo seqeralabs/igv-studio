@@ -22,3 +22,6 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+.workspaces/
+test-data/sample-project/test.vcf.gz
+test-data/sample-project/test.vcf.gz.tbi

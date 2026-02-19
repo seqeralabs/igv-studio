@@ -1,6 +1,8 @@
 schemaVersion: "0.0.1"
 kind: "studio-config"
 session:
-  template:
-    kind: "dockerfile"
-    dockerfile: "Dockerfile"
+    name: "igv-studio"
+    description: "IGV (Integrative Genomics Viewer) web application for genomic data visualization."
+    template:
+        kind: "dockerfile"
+        dockerfile: "Dockerfile"
