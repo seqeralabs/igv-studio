@@ -20,19 +20,7 @@ DEBUG=1 /usr/local/bin/discover-data-links.sh
 
 This repo uses **studio git integration**. Platform builds the image via Wave using `.seqera/studio-config.yaml` (kind: dockerfile). No manual Docker build/push needed.
 
-### Workspace prerequisites (Platform-side, not in this repo)
-
-1. **ECR repo** — Wave pushes built images here. Set path in Settings → Studios → Container repository.
-2. **Cross-account ECR policy** — Forge-created Batch instances run in a different AWS account than ECR. Add `ecr:BatchGetImage`/`ecr:GetDownloadUrlForLayer` permission for the compute account.
-3. **AWS Batch CE** — Studios need AWS Batch (Forge, EC2 on-demand) or AWS Cloud. Seqera Compute CEs silently fail at provisioning.
-4. **GitHub credential** — Fine-grained PAT scoped to this repo (Contents: read-only) if private.
-
-### Common errors
-
-- `buildRepository must be specified` → No container repo in workspace settings
-- `Missing credentials for container repository` → No ECR credential in workspace
-- `CannotPullImageManifestError` → Cross-account ECR pull denied, add resource policy
-- Studio stops during "Provisioning compute resources" → Wrong CE type, use AWS Batch
+Workspace setup (ECR, credentials, compute env) is documented in [docs/workspace-setup.md](docs/workspace-setup.md).
 
 ## Architecture
 
