@@ -1,0 +1,22 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Documentation
+*.md
+LICENSE
+
+# Test data
+test-data
+
+# Build artifacts
+*.log
+
+# Seqera config (not needed in image)
+studio-config.yaml

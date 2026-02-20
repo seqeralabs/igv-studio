@@ -13,8 +13,9 @@ if [ -z "$CONNECT_TOOL_PORT" ]; then
 fi
 
 # Wait for Fusion data directory to be populated (with timeout)
-echo "Waiting for Fusion data mounts..."
-WAIT_TIMEOUT=60
+# Override with FUSION_WAIT_TIMEOUT env var (default: 60s)
+WAIT_TIMEOUT=${FUSION_WAIT_TIMEOUT:-60}
+echo "Waiting for Fusion data mounts (timeout: ${WAIT_TIMEOUT}s)..."
 WAITED=0
 while [ ! -d "/workspace/data" ] || [ -z "$(ls -A /workspace/data 2>/dev/null)" ]; do
     if [ $WAITED -ge $WAIT_TIMEOUT ]; then
