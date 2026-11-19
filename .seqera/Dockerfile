@@ -1,7 +1,7 @@
 # IGV Web App Studio for Seqera Platform
 
 # Add a default Connect client version. Can be overridden by build arg
-ARG CONNECT_CLIENT_VERSION="0.9.0"
+ARG CONNECT_CLIENT_VERSION="0.15"
 # Pin IGV webapp version (use "master" for latest dev build)
 ARG IGV_WEBAPP_VERSION="v2.4.2"
 
@@ -31,6 +31,11 @@ RUN apt-get update --yes && apt-get install --yes --no-install-recommends \
     python3 \
     sudo \
     && rm -rf /var/lib/apt/lists/*
+
+# Record the Connect client version on the image; Seqera Platform reads this label.
+# The ARG is re-declared because a value set before the first FROM is not visible inside a stage.
+ARG CONNECT_CLIENT_VERSION
+LABEL io.seqera.connect.version="${CONNECT_CLIENT_VERSION}"
 
 # Copy connect client from Seqera base image and install early
 COPY --from=connect /usr/bin/connect-client /usr/bin/connect-client
