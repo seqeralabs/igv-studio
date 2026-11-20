@@ -47,8 +47,9 @@ RUN mkdir -p /opt/igv-webapp /opt/igv-webapp/js /etc/nginx/sites-enabled
 # Copy built IGV webapp from builder stage
 COPY --from=igv-builder /build/igv-webapp/dist/ /opt/igv-webapp/
 
-# Copy nginx configuration template
-COPY nginx.conf /etc/nginx/sites-available/igv-app
+# Copy the nginx configuration template. start.sh writes the site configuration from it on every
+# start, so a Studio restored from a checkpoint does not keep the port of an earlier session.
+COPY nginx.conf /etc/nginx/igv-app.conf.template
 
 # Copy data discovery and config generation scripts
 COPY discover-data-links.sh /usr/local/bin/discover-data-links.sh

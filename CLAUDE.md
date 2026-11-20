@@ -74,7 +74,7 @@ User-provided IGV configs are also detected: `igv-config.json`, `igvConfig.json`
 ### Port Handling
 
 - Seqera Platform: Uses `CONNECT_TOOL_PORT` environment variable (set by connect-client)
-- nginx.conf uses `CONNECT_TOOL_PORT_PLACEHOLDER` which gets sed-replaced at startup
+- nginx.conf uses `CONNECT_TOOL_PORT_PLACEHOLDER`. The image keeps it as `/etc/nginx/igv-app.conf.template`, and start.sh writes `/etc/nginx/sites-available/igv-app` from it on every start. Never edit the site file in place: a restarted Studio gets back the files of its previous session, so an in-place edit keeps the first session's port and nginx stops answering on the new one
 
 ## Testing
 

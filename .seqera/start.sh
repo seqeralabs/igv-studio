@@ -39,8 +39,9 @@ else
     cp /opt/igv-webapp/js/igvwebConfig.template.js /opt/igv-webapp/js/igvwebConfig.js
 fi
 
-# Create nginx configuration with dynamic port
-sed -i "s/CONNECT_TOOL_PORT_PLACEHOLDER/${CONNECT_TOOL_PORT}/g" /etc/nginx/sites-available/igv-app
+# Write the nginx configuration for this session's port. From the template, not in place: a restarted
+# Studio gets back the files of its previous session, where the placeholder was already replaced.
+sed "s/CONNECT_TOOL_PORT_PLACEHOLDER/${CONNECT_TOOL_PORT}/g" /etc/nginx/igv-app.conf.template > /etc/nginx/sites-available/igv-app
 
 # Test nginx configuration
 nginx -t
